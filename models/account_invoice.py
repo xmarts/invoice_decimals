@@ -14,7 +14,8 @@ class AccountInvoice(models.Model):
                 amount= line.amount_total
                 valor = round(amount, 2)
                 line.write({'amount_total': valor})
-            for l in  invoice.invoice_line_ids:
+                line.write({'amount': valor})
+            for l in invoice.invoice_line_ids:
                 redondeo = round(l.price_unit, 2)
                 l.write({'price_unit': redondeo})
             amount_untax_redondeo= round(invoice.amount_untaxed,2)
@@ -25,3 +26,8 @@ class AccountInvoice(models.Model):
             invoice.write({'amount_total': amount_total_redondeo})
             residual_redondeo = round(invoice.residual, 2)
             invoice.write({'residual': residual_redondeo})
+            invoice_tax = self.env['account.invoice.tax'].search([('invoice_id','=',invoice.id)])
+            for i in invoice_tax:
+                x_redondeo = round(i.amount_total, 2)
+                i.write({'amount_total': x_redondeo})
+
