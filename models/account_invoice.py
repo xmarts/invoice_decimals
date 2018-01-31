@@ -10,11 +10,11 @@ class AccountInvoice(models.Model):
     @api.multi
     def action_setting(self):
         for invoice in self:
-            #for line in invoice.tax_line_ids:
-            #3    amount= line.amount_total
-            #    valor = round(amount, 2)
-            #    line.write({'amount_total': valor})
-             #   line.write({'amount': valor})
+            for line in invoice.tax_line_ids:
+                amount= line.amount_total
+                valor = round(amount, 2)
+                line.write({'amount_total': valor})
+                line.write({'amount': valor})
             for l in invoice.invoice_line_ids:
             #    redondeo = round(l.price_unit, 2)
             #    l.write({'price_unit': redondeo})
