@@ -37,10 +37,11 @@ class AccountInvoice(models.Model):
             #invoice.write({'amount_total_signed': amount_total_signed_redondeo})
             #residual_redondeo = round(invoice.residual, 2)
             #invoice.write({'residual': residual_redondeo})
-            #invoice_tax = self.env['account.invoice.tax'].search([('invoice_id','=',invoice.id)])
-            #for i in invoice_tax:
+            invoice_tax = self.env['account.invoice.tax'].search([('invoice_id','=',invoice.id)])
+            for i in invoice_tax:
             #    x_redondeo = round(i.amount_total, 2)
-            #    i.write({'amount_total': x_redondeo})
+                i.write({'amount_total': iva})
+                i.write({'amount': iva})
     def compute_amount(self):
         round_curr = self.currency_id.round
         amount_untaxed = sum(line.price_subtotal for line in self.invoice_line_ids)
