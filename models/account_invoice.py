@@ -19,7 +19,12 @@ class AccountInvoice(models.Model):
                 l.write({'price_unit': redondeo})
             #    redondeo = round(l.price_subtotal, 2)
             #    l.write({'price_subtotal': redondeo})
-            invoice.compute_amount()
+            iva = self.amount_untaxed * 0.16
+            invoice.write({'amount_tax': iva})
+            suma = self.amount_untaxed + iva
+            invoice.write({'amount_total_signed': suma})
+            invoice.write({'amount_total': suma})
+
             #    for t in  l.invoice_line_tax_ids:
             #        monto= t.amount_total
             #amount_untax_redondeo= round(invoice.amount_untaxed,2)
