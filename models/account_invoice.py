@@ -15,12 +15,13 @@ class AccountInvoice(models.Model):
             #    valor = round(amount, 2)
             #    line.write({'amount_total': valor})
             for l in invoice.invoice_line_ids:
-            #    redondeo = round(l.price_unit, 2)
-            #    l.write({'price_unit': redondeo})
-                redondeo = round(l.price_subtotal, 2)
-                l.write({'price_subtotal': redondeo})
-                for t in  l.invoice_line_tax_ids:
-                    monto= t.amount_total
+                redondeo = round(l.price_unit, 2)
+                l.write({'price_unit': redondeo})
+            #    redondeo = round(l.price_subtotal, 2)
+            #    l.write({'price_subtotal': redondeo})
+            invoice.compute_amount()
+            #    for t in  l.invoice_line_tax_ids:
+            #        monto= t.amount_total
             #amount_untax_redondeo= round(invoice.amount_untaxed,2)
             #invoice.write({'amount_untaxed': amount_untax_redondeo})
             #amount_tax_redondeo = round(invoice.amount_tax, 2)
@@ -35,4 +36,25 @@ class AccountInvoice(models.Model):
             #for i in invoice_tax:
             #    x_redondeo = round(i.amount_total, 2)
             #    i.write({'amount_total': x_redondeo})
+    def compute_amount(self):
+        round_curr = self.currency_id.round
+        amount_untaxed = sum(line.price_subtotal for line in self.invoice_line_ids)
+        self.write({'amount_untaxed': amount_untaxed})
+        amount_tax = sum(round_curr(line.amount_total) for line in self.tax_line_ids)
+        self.write({'amount_tax': amount_tax})
+        amount_total = self.amount_untaxed + self.amount_tax
+        self.write({'amount_total': amount_total})
+        amount_total_company_signed = self.amount_total
+        amount_untaxed_signed = self.amount_untaxed
+        if self.currency_id and self.company_id and self.currency_id != self.company_id.currency_id:
+            currency_id = self.currency_id.with_context(date=self.date_invoice)
+            amount_total_company_signed = currency_id.compute(self.amount_total, self.company_id.currency_id)
+            amount_untaxed_signed = currency_id.compute(self.amount_untaxed, self.company_id.currency_id)
+        sign = self.type in ['in_refund', 'out_refund'] and -1 or 1
+        amount_total_company_signed = amount_total_company_signed * sign
+        self.write({'amount_total_company_signed': amount_total_company_signed})
+        amount_total_signed = self.amount_total * sign
+        self.write({'amount_total_signed': amount_total_signed})
+        amount_untaxed_signed = amount_untaxed_signed * sign
+        self.write({'amount_untaxed_signed': amount_untaxed_signed})
 
